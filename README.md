@@ -2,7 +2,7 @@
 
 You will eat your deads!
 
-Commands:
+## Commands
 ```
 @tavernier help : give help
 
