@@ -11,17 +11,17 @@ creates = [
 
 structures = [
     {
-        'name' : 'registry',
-        'columns' :
+        'name': 'registry',
+        'columns': ''
     }
 ]
 
 populates = [
     {
-        'table' : 'registry',
-        'pairs' : [
+        'table': 'registry',
+        'pairs': [
             {
-                "")
+                ""
             }
         ]
     }
