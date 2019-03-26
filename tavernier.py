@@ -1,65 +1,39 @@
 #!/bin/env python3
-#import sqlite3
-from sqlalchemy import create_engine, Column, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
-import sys
-
-
-sys.path.append('./resources')
+from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData
 from discord.ext import commands
 
 
 class Tavernier(commands.Bot):
 
     def __init__(self, **attrs):
-        super().__init__(command_prefix="|", self_bot=True)
-        self.db = create_engine('sqlite://db/tavernier.db')
-
-    def __del__(self):
-        self.db.close()
-
-    def init(self):
-        curs = self.db.cursor()
-        try:
-            curs.execute("SELECT count(*) from registry ")
-            print(curs.fetchall())
-        except sqlite3.OperationalError as e:
-            print("Installing DB")
-            curs.close()
-            self.initdb()
+        super().__init__(command_prefix="$")
+        self.db = create_engine('sqlite:///db/tavernier.db')
+        clientid = self.initdb()
+        self.add_command(self.hello)
+        self.add_command(self.ping)
+        self.run(clientid)
 
     def initdb(self):
-        import sys
-        sys.path.append('./resources')
-        from initdatabases import creates
-        print(creates)
-        curs = self.db.cursor()
-        try:
-            for table in creates:
-                col = ""
-                for column in table['structure']:
-                    col += column + ","
-                sql = "CREATE TABLE " + table['name'] + "(" + col[:-1] + ")"
-                curs.execute(sql)
-            self.populatedb()
-        except sqlite3.DatabaseError as e:
-            print(e)
+        metadata = MetaData()
+        self.registry = Table('registry', metadata,
+                              Column('id', Integer, primary_key=True),
+                              Column('name', String),
+                              Column('value', String)
+                              )
+        metadata.create_all(self.db)
+        toto = self.registry.select().where(self.registry.c.name == "clientid")
+        res = self.db.execute(toto)
+        clientid = res.fetchall()[0][2]
+        return clientid
 
-#    def populatedb(self):
+    @commands.command(pass_context=True)
+    async def ping(self, ctx):
+        await self.reply("mange tes morts bâtard")
 
+    @commands.command(pass_context=True)
+    async def hello(self, ctx):
+        await self.send_message(ctx.message.channel, "hello " + ctx.message.author.display_name)
 
-Base = declarative_base()
-
-
-class Registry(Base):
-    __tablename__ = 'registry'
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-    value = Column(String)
-
-    def __repr__(self):
 
 if __name__ == '__main__':
     tavernier = Tavernier()
-    tavernier.init()
