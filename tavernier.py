@@ -1,13 +1,16 @@
 #!/bin/env python3
 from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData
 from discord.ext import commands
+import asyncio
+import sys
 import git
 
 
 class Tavernier(commands.Bot):
 
     def __init__(self, **attrs):
-        super().__init__(command_prefix="$")
+        self.prefix = "$"
+        super().__init__(command_prefix=self.prefix)
         self.db = create_engine('sqlite:///db/tavernier.db')
         clientid = self.initdb()
         self.add_command(self.hello)
@@ -28,6 +31,16 @@ class Tavernier(commands.Bot):
         clientid = res.fetchall()[0][2]
         return clientid
 
+    def triggeredresponse(self):
+        sys.path.append("resources")
+        import response
+        return response.response
+
+    @staticmethod
+    def update():
+        g = git.cmd.Git(".")
+        g.pull()
+
     @commands.command(pass_context=True)
     async def ping(self, ctx):
         """T'envoie manger tes morts"""
@@ -46,10 +59,19 @@ class Tavernier(commands.Bot):
         await self.send_message(ctx.message.channel, "Ciao les nazes !")
         await self.logout()
 
-    @staticmethod
-    def update():
-        g = git.cmd.Git(".")
-        g.pull()
+    @asyncio.coroutine
+    async def on_message(self, msg):
+        if msg.author != msg.server.me:
+            if not msg.content.startswith(self.prefix):
+                resp = self.triggeredresponse()
+                for word in msg.content.split():
+                    print(word)
+                    if word in resp.keys():
+                        print(word + "-->" + resp[word])
+                        await self.send_message(msg.channel, resp[word])
+                        break
+            else:
+                await self.process_commands(msg)
 
 
 if __name__ == '__main__':
