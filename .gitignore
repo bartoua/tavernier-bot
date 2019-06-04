@@ -106,5 +106,8 @@ venv.bak/
 # PyCharm
 .idea/
 
+# VSCode
+.vscode/
+
 # DB
 db/tavernier.db
